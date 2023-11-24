@@ -15,6 +15,7 @@ This will be Solely used for Hosting and Future Improvements.
 # Install These Requirements
 
 ```python
+!sudo apt-get update
 !sudo apt install tesseract-ocr
 !sudo apt-get install tesseract-ocr-all
 !pip install PyPDF2
