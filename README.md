@@ -21,6 +21,7 @@ This will be Solely used for Hosting and Future Improvements.
 !pip install PyPDF2
 !pip install pytesseract
 !pip install pdf2image
+!pip install fpdf
 !pip install aiohttp
 !sudo apt-get install -y poppler-utils
 ```
@@ -104,7 +105,25 @@ else:
 ```
 
 
+# Usage (Output in PDF Format)
+```python
+from fpdf import FPDF
+from google.colab import files
 
+# For URL
+response = asyncio.get_event_loop().run_until_complete(ocr_from_url_or_file('https://cdn.discordapp.com/attachments/1095065755017552096/1176800366973689866/image.png', 'eng'))
+response_dict = json.loads(response)
+if 'text' in response_dict:
+    print(response_dict['text'])
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, txt=response_dict['text'])
+    pdf.output("output.pdf")
+    files.download('output.pdf')
+else:
+    print(response_dict['error'])
+```
 
 # Supported Languages
 
