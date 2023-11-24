@@ -95,9 +95,12 @@ else:
 # Usage
 
 ```python
-response = asyncio.get_event_loop().run_until_complete(ocr_from_url('Your Image/PDF URL Here', 'eng'))
+response = asyncio.get_event_loop().run_until_complete(ocr_from_url_or_file('/content/social.webp', 'eng'))
 response_dict = json.loads(response)
-print(response_dict['text'])
+if 'text' in response_dict:
+    print(response_dict['text'])
+else:
+    print(response_dict['error'])
 ```
 
 
