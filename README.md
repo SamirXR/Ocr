@@ -29,6 +29,7 @@ This will be Solely used for Hosting and Future Improvements.
 
 
 ```python
+import os
 import aiohttp
 import asyncio
 import PyPDF2
@@ -37,33 +38,56 @@ from PIL import Image
 from io import BytesIO
 from pdf2image import convert_from_path
 import nest_asyncio
-nest_asyncio.apply()
 import json
+
+nest_asyncio.apply()
 
 async def fetch_content(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return await response.read()
 
-async def ocr_from_url(url, lang='eng'):
-    response = await fetch_content(url)
-    try:
-        img = Image.open(BytesIO(response))
-        config = f'-l {lang}'
-        text = pytesseract.image_to_string(img, config=config)
-        return json.dumps({'text': text})
-    except:
-        with open('temp.pdf', 'wb') as f:
-            f.write(response)
-        images = convert_from_path('temp.pdf')
-        text = ''
-        for i in range(len(images)):
-            text += pytesseract.image_to_string(images[i], lang=lang)
-        return json.dumps({'text': text})
+async def ocr_from_file(file_path, lang='eng'):
+    if os.path.exists(file_path):
+        if file_path.endswith('.pdf'):
+            images = convert_from_path(file_path)
+            text = ''
+            for i in range(len(images)):
+                text += pytesseract.image_to_string(images[i], lang=lang)
+            return json.dumps({'text': text})
+        else:
+            img = Image.open(file_path)
+            config = f'-l {lang}'
+            text = pytesseract.image_to_string(img, config=config)
+            return json.dumps({'text': text})
+    else:
+        return json.dumps({'error': 'File does not exist'})
 
-response = asyncio.get_event_loop().run_until_complete(ocr_from_url('https://cdn.discordapp.com/attachments/1095065755017552096/1176800366973689866/image.png', 'eng'))
+async def ocr_from_url_or_file(input, lang='eng'):
+    if input.startswith('http://') or input.startswith('https://'):
+        response = await fetch_content(input)
+        try:
+            img = Image.open(BytesIO(response))
+            config = f'-l {lang}'
+            text = pytesseract.image_to_string(img, config=config)
+            return json.dumps({'text': text})
+        except:
+            with open('temp.pdf', 'wb') as f:
+                f.write(response)
+            images = convert_from_path('temp.pdf')
+            text = ''
+            for i in range(len(images)):
+                text += pytesseract.image_to_string(images[i], lang=lang)
+            return json.dumps({'text': text})
+    else:
+        return await ocr_from_file(input, lang)
+
+response = asyncio.get_event_loop().run_until_complete(ocr_from_url_or_file('/content/social.webp', 'eng'))
 response_dict = json.loads(response)
-print(response_dict['text'])
+if 'text' in response_dict:
+    print(response_dict['text'])
+else:
+    print(response_dict['error'])
 ```
 
 
